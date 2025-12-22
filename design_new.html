@@ -1,0 +1,790 @@
+<!DOCTYPE html>
+<html lang="pl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
+    <title>Messenger Wrapped 2025 - Fixed</title>
+    
+    <!-- Font -->
+    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;600;800&display=swap" rel="stylesheet">
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <script src="https://html2canvas.hertzen.com/dist/html2canvas.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jszip/3.10.1/jszip.min.js"></script>
+
+    <style>
+        :root {
+            --bg-deep: #050505;
+            --text-white: #ffffff;
+            --text-muted: rgba(255, 255, 255, 0.5);
+            
+            --accent-1: #3b82f6; /* Niebieski */
+            --accent-2: #ec4899; /* Różowy */
+            --accent-3: #8b5cf6; /* Fiolet */
+            --accent-gradient: linear-gradient(135deg, #ec4899 0%, #8b5cf6 100%);
+            
+            --glass-bg: rgba(25, 25, 25, 0.8);
+            --glass-border: rgba(255, 255, 255, 0.1);
+        }
+
+        * { margin: 0; padding: 0; box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
+
+        body {
+            font-family: 'Plus Jakarta Sans', sans-serif;
+            background-color: var(--bg-deep);
+            color: var(--text-white);
+            height: 100dvh;
+            width: 100vw;
+            overflow: hidden;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+        }
+
+        /* TŁO - Uspokojone */
+        .aurora-bg {
+            position: absolute; inset: 0; z-index: 0; background: #000; overflow: hidden;
+        }
+        .orb {
+            position: absolute; border-radius: 50%; filter: blur(90px); opacity: 0.4;
+        }
+        .orb-1 { width: 300px; height: 300px; background: var(--accent-1); top: -50px; left: -50px; }
+        .orb-2 { width: 350px; height: 350px; background: var(--accent-2); bottom: -50px; right: -50px; }
+        
+        /* RAMKA APLIKACJI */
+        .app-frame {
+            position: relative; width: 100%; height: 100%; z-index: 10;
+            display: flex; flex-direction: column;
+            background: transparent;
+        }
+        @media (min-width: 500px) {
+            .app-frame {
+                max-width: 420px; max-height: 840px;
+                height: 90vh; border-radius: 30px; 
+                box-shadow: 0 0 0 10px #1a1a1a, 0 20px 50px rgba(0,0,0,0.5);
+                background: #000; overflow: hidden;
+            }
+            .aurora-bg { border-radius: 20px; }
+            .app-frame .aurora-bg { position: absolute; inset: 0; }
+        }
+
+        /* NAWIGACJA */
+        .nav-header {
+            position: absolute; top: 0; left: 0; width: 100%; padding: 15px 10px; z-index: 20;
+            display: flex; gap: 4px;
+        }
+        .progress-bar {
+            flex: 1; height: 3px; background: rgba(255,255,255,0.15); border-radius: 2px; overflow: hidden;
+        }
+        .progress-fill {
+            height: 100%; width: 0%; background: #fff;
+            transition: width 0.2s linear;
+        }
+        .progress-bar.filled .progress-fill { width: 100%; }
+        .progress-bar.active .progress-fill { width: 100%; }
+
+        /* SLAJDY */
+        .slide {
+            position: absolute; inset: 0; padding: 60px 20px 40px;
+            display: flex; flex-direction: column; justify-content: center;
+            opacity: 0; pointer-events: none;
+            transition: opacity 0.4s ease; /* Proste przejście opacity */
+        }
+        .slide.active { opacity: 1; pointer-events: auto; }
+
+        /* ANIMACJE ELEMENTÓW (CZYSTSZE) */
+        .anim-item { opacity: 0; transform: translateY(20px); }
+        
+        .slide.active .anim-item {
+            animation: cleanSlideUp 0.6s cubic-bezier(0.2, 0.8, 0.2, 1) forwards;
+        }
+        
+        /* Różne opóźnienia */
+        .d-1 { animation-delay: 0.1s; }
+        .d-2 { animation-delay: 0.2s; }
+        .d-3 { animation-delay: 0.3s; }
+
+        /* Specjalna animacja dla kart (Zoom In) */
+        .slide.active .card-pop {
+            transform: scale(0.95); opacity: 0;
+            animation: cleanPop 0.5s cubic-bezier(0.34, 1.56, 0.64, 1) forwards;
+            animation-delay: 0.25s;
+        }
+
+        @keyframes cleanSlideUp {
+            from { opacity: 0; transform: translateY(20px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+        @keyframes cleanPop {
+            from { opacity: 0; transform: scale(0.95); }
+            to { opacity: 1; transform: scale(1); }
+        }
+
+        /* TYPOGRAFIA */
+        .label { 
+            font-size: 0.75rem; font-weight: 800; letter-spacing: 1px; 
+            text-transform: uppercase; color: var(--text-muted); margin-bottom: 5px; display: block; 
+        }
+        h1 { font-size: 2.2rem; font-weight: 800; line-height: 1.1; margin-bottom: 20px; letter-spacing: -0.5px; }
+        
+        .gradient-text { 
+            background: var(--accent-gradient); -webkit-background-clip: text; -webkit-text-fill-color: transparent; 
+        }
+
+        /* KARTY */
+        .glass-card {
+            background: var(--glass-bg);
+            border: 1px solid var(--glass-border);
+            border-radius: 24px; padding: 24px; margin-top: 15px;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.5);
+        }
+        
+        .stat-row { display: flex; justify-content: space-between; align-items: center; padding: 12px 0; border-bottom: 1px solid rgba(255,255,255,0.08); }
+        .stat-row:last-child { border-bottom: none; }
+        .row-value { font-weight: 700; font-size: 1.1rem; }
+        .sub-text { font-size: 0.85rem; color: var(--text-muted); }
+
+        /* WYKRESY */
+        .chart-wrapper { width: 100%; height: 220px; position: relative; margin: 15px 0; overflow: hidden; }
+        
+        /* PODIUM */
+        .podium-container {
+            display: flex; justify-content: center; align-items: flex-end; gap: 15px;
+            height: 220px; margin: 20px 0 40px;
+        }
+        .podium-col {
+            display: flex; flex-direction: column; align-items: center; justify-content: flex-end; width: 80px;
+        }
+        .p-bar {
+            width: 100%; border-radius: 12px 12px 4px 4px;
+            background: rgba(255,255,255,0.1); border: 1px solid rgba(255,255,255,0.1);
+            display: flex; align-items: flex-end; justify-content: center;
+            padding-bottom: 10px; font-weight: 800; font-size: 1.2rem;
+            transform-origin: bottom; transform: scaleY(0); /* Start state */
+        }
+        .slide.active .p-bar { animation: growBar 1s cubic-bezier(0.2, 0.8, 0.2, 1) forwards; }
+        
+        .pb-1 { height: 140px; background: rgba(236, 72, 153, 0.2); border-color: var(--accent-2); animation-delay: 0.4s !important; }
+        .pb-2 { height: 100px; background: rgba(59, 130, 246, 0.2); border-color: var(--accent-1); animation-delay: 0.2s !important; }
+        .pb-3 { height: 70px; animation-delay: 0.6s !important; }
+        
+        .p-emoji { font-size: 3rem; margin-bottom: 10px; opacity: 0; transform: translateY(10px); }
+        .slide.active .p-emoji { animation: cleanSlideUp 0.5s forwards; }
+        .pe-1 { animation-delay: 0.8s !important; font-size: 4rem; }
+        .pe-2 { animation-delay: 0.6s !important; }
+        .pe-3 { animation-delay: 1.0s !important; }
+
+        @keyframes growBar { to { transform: scaleY(1); } }
+
+        /* PRZYCISKI */
+        .tap-zone { position: absolute; top: 0; bottom: 0; width: 40%; z-index: 50; cursor: pointer; }
+        .tap-left { left: 0; } .tap-right { right: 0; }
+        
+        .btn {
+            display: block; width: 100%; padding: 18px; 
+            border-radius: 100px; border: none; font-weight: 700; font-size: 1rem;
+            margin-top: 10px; cursor: pointer; transition: transform 0.1s;
+        }
+        .btn-primary { background: #fff; color: #000; }
+        .btn-accent { background: var(--accent-gradient); color: #fff; }
+        .btn-ghost { background: transparent; border: 1px solid rgba(255,255,255,0.3); color: #fff; }
+        .btn:active { transform: scale(0.96); }
+
+        /* MODAL */
+        .modal {
+            position: fixed; inset: 0; background: rgba(0,0,0,0.9); z-index: 1000;
+            display: none; justify-content: center; align-items: center; padding: 20px;
+        }
+        .modal.active { display: flex; }
+        .modal-box {
+            background: #151515; border: 1px solid rgba(255,255,255,0.1);
+            padding: 24px; border-radius: 24px; width: 100%; max-width: 350px;
+            text-align: center;
+        }
+        .dl-opt {
+            background: rgba(255,255,255,0.05); padding: 15px; border-radius: 12px;
+            margin-bottom: 10px; text-align: left; cursor: pointer; border: 1px solid transparent;
+        }
+        .dl-opt.selected { border-color: var(--accent-2); background: rgba(236, 72, 153, 0.1); }
+
+    </style>
+</head>
+<body>
+
+    <div class="app-frame">
+
+        <!-- Tło -->
+        <div class="aurora-bg">
+            <div class="orb orb-1"></div>
+            <div class="orb orb-2"></div>
+        </div>
+
+        <!-- Nawigacja -->
+        <div class="nav-header" id="navHeader"></div>
+        <div class="tap-zone tap-left" id="btnPrev"></div>
+        <div class="tap-zone tap-right" id="btnNext"></div>
+
+        <!-- 1. INTRO -->
+        <section class="slide active">
+            <div class="anim-item d-1">
+                <span class="label">Podsumowanie</span>
+                <h1>Messenger<br><span class="gradient-text">Wrapped 2025</span></h1>
+            </div>
+            <div class="anim-item d-2 glass-card card-pop">
+                <p style="font-size: 1rem; color: rgba(255,255,255,0.8);">Liczba wiadomości w tym roku:</p>
+                <div style="font-size: 3.5rem; font-weight: 800; margin: 10px 0;" id="introTotal">0</div>
+                <div class="sub-text">To był intensywny rok.</div>
+            </div>
+        </section>
+
+        <!-- 2. VERSUS (WYKRES) -->
+        <section class="slide">
+            <div class="anim-item d-1">
+                <span class="label">Rywalizacja</span>
+                <h1>Bitwa na słowa</h1>
+            </div>
+            <div class="anim-item d-2 chart-wrapper">
+                <canvas id="chartVersus"></canvas>
+            </div>
+            <div class="anim-item d-3 glass-card card-pop" style="text-align: center;">
+                <p class="sub-text">Najwięcej napisał(a)</p>
+                <h2 id="winnerName" class="gradient-text">User</h2>
+                <p class="sub-text" style="margin-top: 5px;">Dominacja: <strong style="color:#fff" id="winnerPct">0%</strong></p>
+            </div>
+        </section>
+
+        <!-- 3. GODZINY -->
+        <section class="slide">
+            <div class="anim-item d-1">
+                <span class="label">Aktywność</span>
+                <h1>Kiedy piszecie?</h1>
+            </div>
+            <div class="anim-item d-2 chart-wrapper" style="height: 250px;">
+                <canvas id="chartTime"></canvas>
+            </div>
+            <div class="anim-item d-3 glass-card card-pop">
+                <div style="display: flex; justify-content: space-between; align-items: center;">
+                    <div>
+                        <div class="label">Peak Hour</div>
+                        <div style="font-size: 1.5rem; font-weight: 700;" id="peakHour">20:00</div>
+                    </div>
+                    <div style="font-size: 2rem;">⏰</div>
+                </div>
+            </div>
+        </section>
+
+        <!-- 4. NOCNE MARKI -->
+        <section class="slide">
+            <div class="anim-item d-1">
+                <span class="label">00:00 - 05:00</span>
+                <h1>Nocne Marki 🌚</h1>
+            </div>
+            <div class="anim-item d-2 glass-card card-pop">
+                <div style="text-align: center; padding: 20px 0;">
+                    <div style="font-size: 4rem; font-weight: 800;" id="nightPct">0%</div>
+                    <p class="sub-text">Wiadomości nocą</p>
+                </div>
+                <div style="background: rgba(255,255,255,0.05); padding: 15px; border-radius: 12px; display: flex; align-items: center; gap: 15px;">
+                    <div style="font-size: 1.5rem;">🦉</div>
+                    <div>
+                        <div style="font-weight: 700;" id="nightKingName">Ty</div>
+                        <div class="sub-text">Nie śpi, bo pisze (<span id="nightKingCount">0</span> msg)</div>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- 5. LAST SEEN -->
+        <section class="slide">
+            <div class="anim-item d-1">
+                <span class="label">Dobranoc</span>
+                <h1>Last Seen</h1>
+            </div>
+            <div class="anim-item d-2 glass-card card-pop" style="text-align: center;">
+                <div style="font-size: 3.5rem; margin-bottom: 10px;">😴</div>
+                <p class="sub-text">Najczęściej kończy dzień:</p>
+                <h2 id="lastSeenName" style="margin: 10px 0;">User</h2>
+                
+                <!-- Simple Bar -->
+                <div style="height: 8px; background: rgba(255,255,255,0.1); border-radius: 4px; overflow: hidden; display: flex; margin-top: 20px;">
+                    <div id="lsBar1" style="background: var(--accent-1); height: 100%; width: 50%;"></div>
+                    <div id="lsBar2" style="background: var(--accent-2); height: 100%; width: 50%;"></div>
+                </div>
+                <div style="display: flex; justify-content: space-between; font-size: 0.75rem; margin-top: 5px; opacity: 0.6;">
+                    <span id="lsLabel1">User1</span>
+                    <span id="lsLabel2">User2</span>
+                </div>
+            </div>
+        </section>
+
+        <!-- 6. REFLEKS -->
+        <section class="slide">
+            <div class="anim-item d-1">
+                <span class="label">Szybkość</span>
+                <h1>Refleks</h1>
+            </div>
+            <div class="anim-item d-2 glass-card card-pop">
+                <div style="margin-bottom: 20px;">
+                    <span class="label" style="color: var(--accent-1);">Szybki Bill</span>
+                    <p style="font-size: 1.1rem; margin-top: 5px;">
+                        <strong id="fastReplyWinner">Ona</strong> odpisuje szybciej.
+                    </p>
+                    <p class="sub-text" style="margin-top: 5px;"><span id="fastReplyPct">0</span>% Twoich wiadomości dostaje odpowiedź w < 1 min.</p>
+                </div>
+                <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-top: 20px;">
+                    <div style="background: rgba(255,255,255,0.05); padding: 10px; border-radius: 10px; text-align: center;">
+                        <div class="sub-text">Ty (śr.)</div>
+                        <div style="font-weight: 700; font-size: 1.2rem;" id="avgTime1">0m</div>
+                    </div>
+                    <div style="background: rgba(255,255,255,0.05); padding: 10px; border-radius: 10px; text-align: center;">
+                        <div class="sub-text">Ona (śr.)</div>
+                        <div style="font-weight: 700; font-size: 1.2rem;" id="avgTime2">0m</div>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- 7. GADATLIWOŚĆ -->
+        <section class="slide">
+            <div class="anim-item d-1">
+                <span class="label">Styl</span>
+                <h1>Gadatliwość</h1>
+            </div>
+            <div class="anim-item d-2 glass-card card-pop">
+                <p class="sub-text">Średnia liczba słów na wiadomość:</p>
+                <div style="display: flex; align-items: center; justify-content: space-around; margin: 30px 0;">
+                    <div style="text-align: center;">
+                        <div style="font-size: 2.5rem; font-weight: 800; color: var(--accent-1);" id="avgLenVal1">0</div>
+                        <div class="sub-text" id="alName1">User1</div>
+                    </div>
+                    <div style="width: 1px; height: 50px; background: rgba(255,255,255,0.1);"></div>
+                    <div style="text-align: center;">
+                        <div style="font-size: 2.5rem; font-weight: 800; color: var(--accent-2);" id="avgLenVal2">0</div>
+                        <div class="sub-text" id="alName2">User2</div>
+                    </div>
+                </div>
+                <p style="text-align: center; font-size: 0.9rem;">
+                    Eseje pisze: <strong id="yapMaster">Nikt</strong>
+                </p>
+            </div>
+        </section>
+
+        <!-- 8. PODIUM EMOJI -->
+        <section class="slide">
+            <div class="anim-item d-1">
+                <span class="label">Emocje</span>
+                <h1>Top Emoji</h1>
+            </div>
+            <div class="anim-item d-2 podium-container">
+                <div class="podium-col">
+                    <div class="p-emoji pe-2" id="emo2">🥈</div>
+                    <div class="p-bar pb-2">2</div>
+                </div>
+                <div class="podium-col">
+                    <div class="p-emoji pe-1" id="emo1">🥇</div>
+                    <div class="p-bar pb-1">1</div>
+                </div>
+                <div class="podium-col">
+                    <div class="p-emoji pe-3" id="emo3">🥉</div>
+                    <div class="p-bar pb-3">3</div>
+                </div>
+            </div>
+            <div class="anim-item d-3 glass-card card-pop" style="text-align: center; padding: 15px;">
+                <p class="sub-text">Ulubione:</p>
+                <h3 id="favEmojiName" class="gradient-text">Serce</h3>
+            </div>
+        </section>
+
+        <!-- 9. SŁOWNIK -->
+        <section class="slide">
+            <div class="anim-item d-1">
+                <span class="label">Słownik</span>
+                <h1>Ulubione zwroty</h1>
+            </div>
+            <div class="anim-item d-2 glass-card card-pop">
+                <div style="display: flex; flex-direction: column; gap: 15px;">
+                    <div class="stat-row">
+                        <div style="font-weight: 700; color: #fff;">1. "<span id="vocabPhrase1">...</span>"</div>
+                        <div style="color: var(--accent-1); font-weight: bold;" id="vocabCount1">0</div>
+                    </div>
+                    <div class="stat-row">
+                        <div style="font-weight: 700; color: rgba(255,255,255,0.9);">2. "<span id="vocabPhrase2">...</span>"</div>
+                        <div style="color: var(--accent-2); font-weight: bold;" id="vocabCount2">0</div>
+                    </div>
+                    <div class="stat-row" style="border:none;">
+                        <div style="font-weight: 700; color: rgba(255,255,255,0.8);">3. "<span id="vocabPhrase3">...</span>"</div>
+                        <div style="color: var(--accent-3); font-weight: bold;" id="vocabCount3">0</div>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- 10. MULTIMEDIA -->
+        <section class="slide">
+            <div class="anim-item d-1">
+                <span class="label">Media</span>
+                <h1>Multimedia</h1>
+            </div>
+            <div class="anim-item d-2 glass-card card-pop">
+                <div style="display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 10px;">
+                    <div style="background: rgba(255,255,255,0.05); padding: 15px 5px; border-radius: 15px; text-align: center;">
+                        <div style="font-size: 1.5rem;">📸</div>
+                        <div style="font-weight: 800; font-size: 1.2rem; margin-top: 5px;" id="mediaPhoto">0</div>
+                        <div style="font-size: 0.7rem; opacity: 0.6;">Zdjęcia</div>
+                    </div>
+                    <div style="background: rgba(255,255,255,0.05); padding: 15px 5px; border-radius: 15px; text-align: center;">
+                        <div style="font-size: 1.5rem;">🎤</div>
+                        <div style="font-weight: 800; font-size: 1.2rem; margin-top: 5px;" id="mediaVoice">0</div>
+                        <div style="font-size: 0.7rem; opacity: 0.6;">Głosowe</div>
+                    </div>
+                    <div style="background: rgba(255,255,255,0.05); padding: 15px 5px; border-radius: 15px; text-align: center;">
+                        <div style="font-size: 1.5rem;">🔗</div>
+                        <div style="font-weight: 800; font-size: 1.2rem; margin-top: 5px;" id="mediaLink">0</div>
+                        <div style="font-size: 0.7rem; opacity: 0.6;">Linki</div>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- 11. OUTRO -->
+        <section class="slide">
+            <div class="anim-item d-1" style="text-align: center; margin-bottom: 30px;">
+                <h1 style="font-size: 3.5rem;" class="gradient-text">2025</h1>
+                <p class="sub-text">Dzięki za te rozmowy.</p>
+            </div>
+            <div class="anim-item d-2" style="width: 100%;">
+                <button class="btn btn-primary" onclick="location.reload()">Odtwórz ponownie ↺</button>
+                <button class="btn btn-accent" onclick="openDownloadModal()">Pobierz Wrapped 📥</button>
+                <button class="btn btn-ghost" onclick="window.location.href='wybor_osob.html'">Inny czat 👤</button>
+            </div>
+        </section>
+
+    </div>
+
+    <!-- MODAL -->
+    <div class="modal" id="dlModal">
+        <div class="modal-box">
+            <h3 style="margin-bottom: 20px;">Wybierz format</h3>
+            <div class="dl-opt" id="optHtml" onclick="selectType('html')">
+                <strong>🌐 Plik HTML</strong><br>
+                <small style="color:#aaa">Interaktywny, jeden plik.</small>
+            </div>
+            <div class="dl-opt" id="optJpg" onclick="selectType('jpg')">
+                <strong>🖼️ Obrazy JPG</strong><br>
+                <small style="color:#aaa">Do udostępnienia na Story.</small>
+            </div>
+            <button class="btn btn-accent" id="btnDl" disabled onclick="processDownload()">Pobierz</button>
+            <button class="btn btn-ghost" onclick="closeDownloadModal()" style="margin-top: 10px; border:none;">Anuluj</button>
+        </div>
+    </div>
+
+    <script>
+        let stats = window.__WRAPPED_STATS__ || null;
+
+        // --- DATA LOADING ---
+        if (!stats) {
+            try { stats = JSON.parse(localStorage.getItem('wrappedStats')); } catch(e){}
+            if (!stats) {
+                try { stats = JSON.parse(sessionStorage.getItem('wrappedStats')); } catch(e){}
+            }
+            if(!stats) {
+                // FALLBACK FOR PREVIEW / DEV
+                /*
+                stats = {
+                    total: 12500, users: ["Mati", "Julia"], msgs: [5500, 7000],
+                    hours: [10,20,50,100,200,500,800,1000,1200,1100,900,400],
+                    peakHour: "20:00", nightPct: "15", nightWinner: {name: "Mati", count: 300},
+                    lastSeen: {name: "Julia", pct1: 30, pct2: 70},
+                    fastReplyWinner: "Julia", fastReplyPct: 72, avgTime: ["5m", "2m"],
+                    avgLen: [4, 9], yapMaster: "Julia",
+                    emojis: ["❤️", "😂", "✨"], favEmojiName: "Serce",
+                    topPhrases: [{text:"XD", count:400}, {text:"No", count:200}, {text:"Jezu", count:150}],
+                    media: {photo: 200, voice: 50, link: 20}
+                };
+                */
+               if(!stats) {
+                   alert("Brak danych."); window.location.href='wybor_osob.html';
+               }
+            }
+        }
+
+        const slides = document.querySelectorAll('.slide');
+        const navHeader = document.getElementById('navHeader');
+        let currentIdx = 0;
+
+        // INIT NAV
+        navHeader.innerHTML = '';
+        slides.forEach(() => {
+            const b = document.createElement('div');
+            b.className = 'progress-bar';
+            b.innerHTML = '<div class="progress-fill"></div>';
+            navHeader.appendChild(b);
+        });
+        const bars = document.querySelectorAll('.progress-bar');
+
+        function showSlide(index) {
+            if(index < 0) index = 0;
+            if(index >= slides.length) index = slides.length - 1;
+            currentIdx = index;
+
+            slides.forEach((s, i) => s.classList.toggle('active', i === index));
+            bars.forEach((b, i) => {
+                b.classList.remove('active', 'filled');
+                if(i < index) b.classList.add('filled');
+                if(i === index) b.classList.add('active');
+            });
+
+            // Counters logic
+            if(index === 0) animNum('introTotal', stats.total);
+            if(index === 1) {
+                const max = Math.max(...stats.msgs);
+                const pct = Math.round((max/stats.total)*100);
+                animNum('winnerPct', pct, "%");
+            }
+            if(index === 3) {
+                animNum('nightPct', parseFloat(stats.nightPct), "%");
+                animNum('nightKingCount', stats.nightWinner.count);
+            }
+            if(index === 5) animNum('fastReplyPct', stats.fastReplyPct);
+            if(index === 6) {
+                animNum('avgLenVal1', stats.avgLen[0]);
+                animNum('avgLenVal2', stats.avgLen[1]);
+            }
+            if(index === 8) {
+                animNum('vocabCount1', stats.topPhrases[0].count);
+                animNum('vocabCount2', stats.topPhrases[1].count);
+                animNum('vocabCount3', stats.topPhrases[2].count);
+            }
+            if(index === 9) {
+                animNum('mediaPhoto', stats.media.photo);
+                animNum('mediaVoice', stats.media.voice);
+                animNum('mediaLink', stats.media.link);
+            }
+        }
+
+        function animNum(id, val, suffix='') {
+            const el = document.getElementById(id);
+            if(!el) return;
+            const target = parseFloat(val);
+            let start = 0;
+            const duration = 1500;
+            const startTime = performance.now();
+
+            function update(now) {
+                const elapsed = now - startTime;
+                const prog = Math.min(elapsed / duration, 1);
+                const ease = 1 - Math.pow(1 - prog, 3);
+                
+                const curr = Math.floor(ease * target);
+                el.innerText = curr.toLocaleString() + suffix;
+
+                if(prog < 1) requestAnimationFrame(update);
+                else el.innerText = target.toLocaleString() + suffix;
+            }
+            requestAnimationFrame(update);
+        }
+
+        // --- CANVAS FIX ---
+        function setupCanvas(canvas) {
+            const rect = canvas.parentElement.getBoundingClientRect();
+            // High DPI
+            const dpr = window.devicePixelRatio || 2;
+            canvas.width = rect.width * dpr;
+            canvas.height = rect.height * dpr;
+            canvas.style.width = rect.width + "px";
+            canvas.style.height = rect.height + "px";
+            const ctx = canvas.getContext('2d');
+            ctx.scale(dpr, dpr);
+            return { ctx, w: rect.width, h: rect.height };
+        }
+
+        // FIXED HORIZONTAL BARS (No overflow)
+        function drawVersus(canvas, names, values) {
+            const { ctx, w, h } = setupCanvas(canvas);
+            const maxVal = Math.max(...values, 1);
+            const colors = ['#3b82f6', '#ec4899'];
+            
+            const barH = 40;
+            const gap = 25;
+            const startY = (h - (values.length * (barH + gap))) / 2 + 10;
+            
+            // Limit bar width to leave space for numbers (e.g. 70px from right)
+            const maxBarWidth = w - 70; 
+
+            ctx.font = "bold 14px 'Plus Jakarta Sans'";
+            
+            values.forEach((val, i) => {
+                const y = startY + i * (barH + gap);
+                // Width calculation relative to SAFETY margin
+                const width = (val / maxVal) * maxBarWidth;
+
+                // Label above
+                ctx.fillStyle = "rgba(255,255,255,0.6)";
+                ctx.textAlign = "left";
+                ctx.fillText(names[i], 0, y - 6);
+
+                // Bg
+                ctx.fillStyle = "rgba(255,255,255,0.1)";
+                ctx.beginPath();
+                ctx.roundRect(0, y, w, barH, 8); // Full width BG is okay
+                ctx.fill();
+
+                // Fill
+                ctx.fillStyle = colors[i % 2];
+                ctx.beginPath();
+                // Ensure min width so it's visible
+                ctx.roundRect(0, y, Math.max(width, 10), barH, 8);
+                ctx.fill();
+
+                // Value (Right aligned, safely inside canvas)
+                ctx.fillStyle = "#fff";
+                ctx.textAlign = "right";
+                // Position number at width + 5px padding, BUT if width is small, align right of canvas? 
+                // Better: Align numbers always to the far right of the canvas
+                ctx.fillText(val.toLocaleString(), w, y + barH/2 + 5);
+            });
+        }
+
+        // FIXED VERTICAL CHART
+        function drawTimeChart(canvas, values) {
+            const { ctx, w, h } = setupCanvas(canvas);
+            const maxVal = Math.max(...values, 1);
+            const paddingBottom = 20;
+            const chartH = h - paddingBottom;
+            
+            const barCount = values.length;
+            const gap = 4;
+            // Calculate bar width safely
+            const barW = (w - (barCount - 1) * gap) / barCount;
+
+            values.forEach((val, i) => {
+                const height = (val / maxVal) * chartH;
+                const x = i * (barW + gap);
+                const y = chartH - height;
+                
+                // Gradient
+                const grad = ctx.createLinearGradient(0, y, 0, y + height);
+                grad.addColorStop(0, '#8b5cf6');
+                grad.addColorStop(1, 'rgba(139, 92, 246, 0.2)');
+
+                ctx.fillStyle = grad;
+                ctx.beginPath();
+                ctx.roundRect(x, y, barW, height, 4);
+                ctx.fill();
+            });
+        }
+
+        // POPULATE
+        if(stats) {
+            drawVersus(document.getElementById('chartVersus'), stats.users, stats.msgs);
+            drawTimeChart(document.getElementById('chartTime'), stats.hours);
+
+            // Winner logic
+            const wIdx = stats.msgs[1] > stats.msgs[0] ? 1 : 0;
+            document.getElementById('winnerName').innerText = stats.users[wIdx];
+            
+            document.getElementById('peakHour').innerText = stats.peakHour;
+            document.getElementById('nightKingName').innerText = stats.nightWinner.name;
+            
+            document.getElementById('lastSeenName').innerText = stats.lastSeen.name;
+            document.getElementById('lsBar1').style.width = stats.lastSeen.pct1 + "%";
+            document.getElementById('lsBar2').style.width = stats.lastSeen.pct2 + "%";
+            document.getElementById('lsLabel1').innerText = stats.users[0];
+            document.getElementById('lsLabel2').innerText = stats.users[1];
+
+            document.getElementById('fastReplyWinner').innerText = stats.fastReplyWinner;
+            document.getElementById('avgTime1').innerText = stats.avgTime[0];
+            document.getElementById('avgTime2').innerText = stats.avgTime[1];
+
+            document.getElementById('yapMaster').innerText = stats.yapMaster;
+            document.getElementById('alName1').innerText = stats.users[0];
+            document.getElementById('alName2').innerText = stats.users[1];
+
+            document.getElementById('vocabPhrase1').innerText = stats.topPhrases[0].text;
+            document.getElementById('vocabPhrase2').innerText = stats.topPhrases[1].text;
+            document.getElementById('vocabPhrase3').innerText = stats.topPhrases[2].text;
+
+            document.getElementById('emo1').innerText = stats.emojis[0];
+            document.getElementById('emo2').innerText = stats.emojis[1];
+            document.getElementById('emo3').innerText = stats.emojis[2];
+            document.getElementById('favEmojiName').innerText = stats.favEmojiName;
+        }
+
+        showSlide(0);
+
+        // CONTROLS
+        document.getElementById('btnNext').onclick = () => showSlide(currentIdx + 1);
+        document.getElementById('btnPrev').onclick = () => showSlide(currentIdx - 1);
+        document.onkeydown = (e) => {
+            if(e.key === "ArrowRight") showSlide(currentIdx + 1);
+            if(e.key === "ArrowLeft") showSlide(currentIdx - 1);
+        }
+
+        // DOWNLOAD
+        let dlType = null;
+        const dlModal = document.getElementById('dlModal');
+        
+        window.openDownloadModal = () => dlModal.classList.add('active');
+        window.closeDownloadModal = () => dlModal.classList.remove('active');
+        
+        window.selectType = (t) => {
+            dlType = t;
+            document.querySelectorAll('.dl-opt').forEach(d => d.classList.remove('selected'));
+            document.getElementById(t === 'html' ? 'optHtml' : 'optJpg').classList.add('selected');
+            document.getElementById('btnDl').disabled = false;
+        }
+
+        window.processDownload = async () => {
+            const btn = document.getElementById('btnDl');
+            btn.innerText = "Przetwarzanie...";
+            btn.disabled = true;
+
+            if(dlType === 'html') {
+                const clone = document.documentElement.cloneNode(true);
+                clone.querySelectorAll('button').forEach(b => b.remove());
+                clone.querySelector('#dlModal').remove();
+                
+                // Reset to start
+                clone.querySelectorAll('.slide').forEach((s,i) => s.classList.toggle('active', i===0));
+                
+                // Inject Data
+                const sc = clone.querySelector('script:last-of-type');
+                sc.innerHTML = `window.__WRAPPED_STATS__ = ${JSON.stringify(stats)};\n` + sc.innerHTML;
+                sc.innerHTML += `\nwindow.onload = function(){ currentIdx=0; showSlide(0); };`;
+
+                const blob = new Blob(['<!DOCTYPE html>'+clone.outerHTML], {type:'text/html'});
+                const a = document.createElement('a');
+                a.href = URL.createObjectURL(blob);
+                a.download = `wrapped_${stats.users[0]}_${stats.users[1]}.html`;
+                a.click();
+            } else {
+                // JPG Zip
+                const zip = new JSZip();
+                const frame = document.querySelector('.app-frame');
+                // Hide UI
+                navHeader.style.opacity = 0;
+                
+                for(let i=0; i<slides.length; i++) {
+                    showSlide(i);
+                    await new Promise(r => setTimeout(r, 600)); // Wait for animation
+                    const canvas = await html2canvas(frame, { scale: 2, backgroundColor: '#000' });
+                    const data = canvas.toDataURL('image/jpeg', 0.9).split(',')[1];
+                    zip.file(`slide_${i+1}.jpg`, data, {base64:true});
+                }
+                
+                // Restore
+                showSlide(currentIdx);
+                navHeader.style.opacity = 1;
+                
+                const content = await zip.generateAsync({type:'blob'});
+                const a = document.createElement('a');
+                a.href = URL.createObjectURL(content);
+                a.download = 'wrapped_images.zip';
+                a.click();
+            }
+            btn.innerText = "Pobierz";
+            closeDownloadModal();
+        }
+
+    </script>
+</body>
+</html>
