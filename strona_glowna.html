@@ -3,10 +3,14 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
-    <title>Messenger Wrapped - Upload</title>
+    <title>Messenger Wrapped 2025 - Wersja Przeglądarkowa</title>
     
     <!-- Premium Font -->
     <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;500;700;800&display=swap" rel="stylesheet">
+    
+    <!-- PyScript -->
+    <link rel="stylesheet" href="https://pyscript.net/releases/2024.1.1/core.css" />
+    <script type="module" src="https://pyscript.net/releases/2024.1.1/core.js"></script>
 
     <style>
         :root {
@@ -213,19 +217,19 @@
             <div class="upload-card">
                 <div class="privacy-badge">
                     <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="11" width="18" height="11" rx="2" ry="2"></rect><path d="M7 11V7a5 5 0 0 1 10 0v4"></path></svg>
-                    <span>Dane są prywatne</span>
+                    <span>Dane są prywatne (GitHub Pages)</span>
                 </div>
 
                 <p style="font-size: 0.95rem; color: var(--text-muted); margin-bottom: 10px;">
-                    Plik jest analizowany lokalnie.<br>Nic nie wysyłamy na serwer.
+                    Plik jest analizowany lokalnie przez PyScript.<br>Nic nie opuszcza Twojej przeglądarki.
                 </p>
 
                 <div class="drop-zone" id="dropZone">
-                    <input type="file" id="fileInput" class="file-input" accept=".zip,.json">
+                    <input type="file" id="fileInput" class="file-input" accept=".json">
                     <span class="upload-icon">📂</span>
-                    <h3 id="dropText" style="font-weight: 700;">Wybierz plik ZIP</h3>
+                    <h3 id="dropText" style="font-weight: 700;">Wybierz plik JSON</h3>
                     <p style="font-size: 0.8rem; color: var(--text-muted); margin-top: 5px;">
-                        z danymi Messengera
+                        z historią czatu
                     </p>
                 </div>
 
@@ -233,7 +237,7 @@
             </div>
 
             <div style="text-align: center; margin-top: 10px;">
-                <p class="helper-text">Nie wiesz jak pobrać dane? <br><span class="link" id="openHelp">Zobacz instrukcję (szyfrowane czaty)</span></p>
+                <p class="helper-text">Jak pobrać dane? <br><span class="link" id="openHelp">Zobacz instrukcję</span></p>
             </div>
         </div>
 
@@ -245,42 +249,31 @@
                     <button class="btn-close" id="closeHelp">×</button>
                 </div>
                 
-                <div style="margin-bottom: 20px; font-size: 0.9rem; color: var(--text-muted); text-align: center;">
-                    ⚠️ Ważne: To można zrobić <strong>tylko na komputerze</strong> (PC/Mac).
-                </div>
-
                 <div class="step-item">
                     <div class="step-num">1</div>
                     <div class="step-content">
-                        Wbijaj na <strong>Messenger.com</strong> na kompie i kliknij swoje zdjęcie profilowe w rogu.
+                        Pobierz swoje dane z Facebooka w formacie <strong>JSON</strong>.
                     </div>
                 </div>
 
                 <div class="step-item">
                     <div class="step-num">2</div>
                     <div class="step-content">
-                        Wybierz <strong>Prywatność i bezpieczeństwo</strong>, a potem kliknij <strong>W pełni szyfrowane czaty</strong>.
+                        Rozpakuj pobrany plik ZIP.
                     </div>
                 </div>
 
                 <div class="step-item">
                     <div class="step-num">3</div>
                     <div class="step-content">
-                        Wejdź w <strong>Pamięć wiadomości</strong> ➝ <strong>Pobierz dane z bezpiecznej pamięci</strong>.
+                        Znajdź folder <code>messages/inbox/TwojCzat_12345/</code>.
                     </div>
                 </div>
 
                 <div class="step-item">
                     <div class="step-num">4</div>
                     <div class="step-content">
-                        Facebook poprosi o <strong>PIN</strong> (ten, który ustawiłeś do szyfrowania) lub kod jednorazowy.
-                    </div>
-                </div>
-
-                <div class="step-item">
-                    <div class="step-num">5</div>
-                    <div class="step-content">
-                        Na koniec kliknij <strong>Pobierz</strong>. Dostaniesz plik ZIP – wrzuć go tutaj! 🎉
+                        Wybierz plik <code>message_1.json</code> w tym narzędziu.
                     </div>
                 </div>
 
@@ -291,7 +284,7 @@
         <div class="loader-overlay" id="loader">
             <div class="spinner"></div>
             <h3 style="font-weight: 700;">Analizuję rozmowy...</h3>
-            <p style="color: var(--text-muted); font-size: 0.9rem; margin-top: 5px;">To może chwilę potrwać</p>
+            <p style="color: var(--text-muted); font-size: 0.9rem; margin-top: 5px;" id="loaderStatus">Przygotowywanie środowiska Python...</p>
         </div>
 
     </div>
@@ -302,6 +295,7 @@
         const dropText = document.getElementById('dropText');
         const generateBtn = document.getElementById('generateBtn');
         const loader = document.getElementById('loader');
+        const loaderStatus = document.getElementById('loaderStatus');
         
         // Modal logic
         const helpModal = document.getElementById('helpModal');
@@ -339,37 +333,86 @@
             dropText.innerText = file.name;
             dropText.style.color = "#fff";
             generateBtn.classList.add('ready');
+            
+            // Expose file to window for PyScript
+            window.selectedFile = file;
         }
 
         generateBtn.addEventListener('click', () => {
             if (!generateBtn.classList.contains('ready')) return;
-            const file = fileInput.files[0];
-            if (!file) return;
+            if (!window.processFilePython) {
+                alert("Środowisko Python jeszcze się ładuje. Poczekaj chwilę.");
+                return;
+            }
 
             loader.style.display = 'flex';
+            loaderStatus.innerText = "Wczytywanie pliku...";
             
-            const formData = new FormData();
-            formData.append('file', file);
-
-            fetch('/api/upload', {
-                method: 'POST',
-                body: formData
-            })
-            .then(response => response.json())
-            .then(data => {
-                if (data.success) {
-                    window.location.href = 'wybor_osob.html';
-                } else {
-                    alert('Błąd przesyłania: ' + (data.error || 'Nieznany błąd'));
-                    loader.style.display = 'none';
-                }
-            })
-            .catch(err => {
-                console.error(err);
-                alert('Wystąpił błąd podczas wysyłania pliku.');
-                loader.style.display = 'none';
-            });
+            // Call Python function
+            window.processFilePython();
         });
+    </script>
+
+    <!-- Konfiguracja PyScript -->
+    <script type="py" config="pyscript.toml">
+        import asyncio
+        from js import document, window, Uint8Array
+        from pathlib import Path
+        from zoneinfo import ZoneInfo
+        
+        # Import local project files
+        from messenger_wrapped_dm.parser import load_messages
+        from messenger_wrapped_dm.metrics import compute_metrics
+        from messenger_wrapped_dm.report import build_html
+
+        async def process_file():
+            try:
+                file = window.selectedFile
+                if not file:
+                    return
+
+                document.getElementById("loaderStatus").innerText = f"Przetwarzanie {file.name}..."
+                
+                # Read file content using JS File API -> Python Bytes
+                array_buffer = await file.arrayBuffer()
+                content_bytes = array_buffer.to_bytes()
+                
+                # Save to virtual filesystem
+                temp_path = Path("/tmp_msg.json")
+                temp_path.write_bytes(content_bytes)
+
+                document.getElementById("loaderStatus").innerText = "Obliczanie statystyk..."
+                await asyncio.sleep(0.1)
+
+                # 1. Parse
+                messages, skipped = load_messages(temp_path)
+                
+                # 2. Compute Metrics
+                metrics = compute_metrics(
+                    messages,
+                    tz=ZoneInfo("Europe/Warsaw"),
+                    min_response_seconds=1.0,
+                    max_response_seconds=12 * 3600
+                )
+                
+                document.getElementById("loaderStatus").innerText = "Generowanie raportu..."
+                await asyncio.sleep(0.1)
+
+                # 3. Build HTML
+                final_html = build_html(metrics)
+                
+                # 4. Replace page content
+                document.open()
+                document.write(final_html)
+                document.close()
+                
+            except Exception as e:
+                document.getElementById("loader").style.display = "none"
+                window.alert(f"Błąd: {str(e)}")
+                print(f"Error: {e}")
+
+        # Expose function to JS
+        window.processFilePython = process_file
     </script>
 </body>
 </html>
