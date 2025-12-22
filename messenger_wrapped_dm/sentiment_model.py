@@ -71,38 +71,10 @@ def _load_model(model_name: str) -> tuple[object, object, list[float], object]:
 def get_sentiment_scorer(
     model_name: str | None = None, strict: bool = False
 ) -> Callable[[list[str]], list[float]] | None:
-    mode = os.environ.get("MESSENGER_WRAPPED_SENTIMENT", "hf").lower()
-    if mode in {"off", "none", "heuristic"}:
-        return None
+    # Force heuristic/none mode for browser/GitHub Pages version
+    # to avoid loading heavy torch/transformers libraries.
+    return None
 
-    name = model_name or os.environ.get("MESSENGER_WRAPPED_SENTIMENT_MODEL", DEFAULT_MODEL)
-    try:
-        tokenizer, model, label_scores, torch = _load_model(name)
-    except ModuleNotFoundError as exc:
-        if strict:
-            raise SentimentModelError(
-                "Missing dependencies for AI sentiment. Install with: pip install transformers torch"
-            ) from exc
-        return None
-    except Exception as exc:
-        if strict:
-            raise SentimentModelError(
-                f"Failed to load AI sentiment model '{name}'. Check network/cache or choose --sentiment-backend heuristic."
-            ) from exc
-        return None
-
-    def score_texts(texts: list[str]) -> list[float]:
-        if not texts:
-            return []
-        inputs = tokenizer(texts, padding=True, truncation=True, max_length=128, return_tensors="pt")
-        with torch.no_grad():
-            outputs = model(**inputs)
-        logits = outputs.logits.tolist()
-        scores: list[float] = []
-        for row in logits:
-            probs = _softmax(row)
-            score = sum(prob * weight for prob, weight in zip(probs, label_scores))
-            scores.append(score)
-        return scores
-
-    return score_texts
+    # Original code below disabled
+    # mode = os.environ.get("MESSENGER_WRAPPED_SENTIMENT", "hf").lower()
+    # ...

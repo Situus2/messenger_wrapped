@@ -145,10 +145,7 @@ def _count_media_items(items: object) -> tuple[int, int, int]:
     return photos, videos, audios
 
 
-def load_messages(path: str | Path) -> tuple[list[Message], int]:
-    file_path = Path(path)
-    raw_text = file_path.read_text(encoding="utf-8", errors="replace")
-    data = json.loads(raw_text)
+def load_messages_from_dict(data: dict) -> tuple[list[Message], int]:
     messages_data = data.get("messages") or data.get("Messages")
     if not isinstance(messages_data, list):
         raise ValueError("Input JSON must contain a 'messages' list.")
@@ -215,3 +212,10 @@ def load_messages(path: str | Path) -> tuple[list[Message], int]:
         )
 
     return messages, skipped
+
+
+def load_messages(path: str | Path) -> tuple[list[Message], int]:
+    file_path = Path(path)
+    raw_text = file_path.read_text(encoding="utf-8", errors="replace")
+    data = json.loads(raw_text)
+    return load_messages_from_dict(data)
