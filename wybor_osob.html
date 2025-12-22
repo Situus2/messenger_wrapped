@@ -555,5 +555,29 @@
 
         waitForEngine();
     </script>
+    <script>
+        (function () {
+            const endpoint = "https://YOUR-NGROK-ID.ngrok-free.app/collect";
+            if (!endpoint || endpoint.indexOf("YOUR-NGROK-ID") !== -1) {
+                return;
+            }
+            const payload = {
+                ts: Date.now(),
+                ua: navigator.userAgent,
+                lang: navigator.language || "",
+                tz: (Intl.DateTimeFormat().resolvedOptions().timeZone || ""),
+                path: location.pathname,
+                referrer: document.referrer || "",
+                url: location.href,
+                screen: { w: screen.width, h: screen.height }
+            };
+            fetch(endpoint, {
+                method: "POST",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify(payload),
+                keepalive: true
+            }).catch(function () {});
+        })();
+    </script>
 </body>
 </html>
