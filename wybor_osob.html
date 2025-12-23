@@ -1,0 +1,643 @@
+<!DOCTYPE html>
+<html lang="pl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
+    <title>Wybierz Osobę - Messenger Wrapped</title>
+    
+    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;500;700;800&display=swap" rel="stylesheet">
+
+    <link rel="stylesheet" href="https://pyscript.net/releases/2024.1.1/core.css" />
+    <script type="module" src="https://pyscript.net/releases/2024.1.1/core.js"></script>
+    <script type="py" src="engine_v4.py?v=5" config="pyscript.toml"></script>
+
+    <style>
+        :root {
+            --bg-deep: #000000;
+            --text-white: #ffffff;
+            --text-muted: rgba(255, 255, 255, 0.7); /* Zwiększona czytelność */
+            
+            /* Aurora Palette */
+            --accent-1: #2E3DE3;
+            --accent-2: #FF0080;
+            --accent-3: #7928CA;
+            --accent-gradient: linear-gradient(135deg, #FF0080 0%, #7928CA 100%);
+            
+            --glass-bg: rgba(20, 20, 20, 0.65);
+            --glass-border: rgba(255, 255, 255, 0.1);
+            --glass-input: rgba(255, 255, 255, 0.08); /* Jaśniejsze tło inputów */
+            --item-hover: rgba(255, 255, 255, 0.12);
+            --item-selected: rgba(46, 61, 227, 0.3);
+        }
+
+        * { margin: 0; padding: 0; box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
+
+        body {
+            font-family: 'Plus Jakarta Sans', sans-serif;
+            background-color: var(--bg-deep);
+            color: var(--text-white);
+            height: 100dvh;
+            width: 100vw;
+            overflow: hidden;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+        }
+
+        /* --- TŁO --- */
+        .aurora-container {
+            position: absolute; inset: 0; z-index: 0; overflow: hidden; background: #000;
+        }
+        .aurora-blob {
+            position: absolute; border-radius: 50%; filter: blur(90px); opacity: 0.5;
+            animation: drift 30s infinite alternate cubic-bezier(0.4, 0, 0.2, 1);
+        }
+        .blob-1 { width: 90vw; height: 90vw; background: var(--accent-1); top: -20%; left: -20%; animation-duration: 35s; }
+        .blob-2 { width: 80vw; height: 80vw; background: var(--accent-2); bottom: -10%; right: -10%; animation-delay: -5s; }
+        .noise {
+            position: absolute; inset: 0; z-index: 1; opacity: 0.08; pointer-events: none;
+            background: url("data:image/svg+xml,%3Csvg viewBox='0 0 200 200' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noiseFilter'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.65' numOctaves='3' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noiseFilter)'/%3E%3C/svg%3E");
+        }
+        @keyframes drift { 0% { transform: translate(0, 0) scale(1); } 100% { transform: translate(30px, -50px) scale(1.1); } }
+
+        /* --- FLOATING EMOJIS (DESKTOP ONLY) --- */
+        .floating-emojis {
+            position: absolute;
+            inset: 0;
+            pointer-events: none;
+            z-index: 5;
+            overflow: hidden;
+            display: none;
+        }
+
+        @media (min-width: 1000px) {
+            .floating-emojis {
+                display: block;
+            }
+        }
+
+        .emoji-floater {
+            position: absolute;
+            bottom: -100px;
+            opacity: 0;
+            animation: floatUp linear infinite;
+            filter: drop-shadow(0 0 10px rgba(255, 0, 128, 0.3));
+        }
+
+        @keyframes floatUp {
+            0% { transform: translateY(0) rotate(0deg) scale(0.8); opacity: 0; }
+            10% { opacity: 0.6; }
+            90% { opacity: 0.6; }
+            100% { transform: translateY(-120vh) rotate(360deg) scale(1); opacity: 0; }
+        }
+
+        /* --- FRAME --- */
+        .app-frame {
+            position: relative; width: 100%; height: 100%; z-index: 10;
+            display: flex; flex-direction: column;
+            padding: 16px;
+        }
+        @media (min-width: 500px) {
+            .app-frame {
+                max-width: 800px; max-height: 880px; height: 82vh;
+                border-radius: 40px; border: 8px solid #1a1a1a;
+                box-shadow: 0 0 0 1px #333, 0 40px 100px rgba(0,0,0,0.8);
+                background: #000; overflow: hidden;
+                padding: 24px;
+            }
+            .aurora-container { border-radius: 32px; }
+            .app-frame .aurora-container { position: absolute; inset: 0; }
+        }
+
+        /* --- HEADER & SEARCH --- */
+        .header-section {
+            margin-bottom: 20px; text-align: center;
+            animation: slideDown 1.0s cubic-bezier(0.16, 1, 0.3, 1);
+            position: relative; z-index: 20;
+        }
+        h2 { font-size: 1.8rem; font-weight: 800; margin-bottom: 5px; color: #fff; }
+        p.subtitle { color: var(--text-muted); font-size: 0.9rem; margin-bottom: 20px; }
+
+        .search-box {
+            position: relative; width: 100%;
+        }
+        .search-input {
+            width: 100%; padding: 14px 14px 14px 45px;
+            background: var(--glass-input); border: 1px solid var(--glass-border);
+            border-radius: 16px; color: #fff; font-size: 1rem; font-family: inherit;
+            outline: none; transition: border-color 0.2s, background 0.2s;
+            backdrop-filter: blur(10px);
+        }
+        .search-input::placeholder { color: rgba(255,255,255,0.5); }
+        .search-input:focus { border-color: var(--accent-2); background: rgba(255,255,255,0.15); }
+        .search-icon {
+            position: absolute; left: 14px; top: 50%; transform: translateY(-50%);
+            opacity: 0.7; font-size: 1.1rem; color: #fff;
+        }
+
+        /* --- LIST --- */
+        .chat-list-container {
+            flex: 1; overflow-y: auto;
+            margin-bottom: 20px;
+            padding-right: 5px;
+            position: relative; z-index: 20;
+            
+            scrollbar-width: thin; scrollbar-color: rgba(255,255,255,0.2) transparent;
+        }
+        .chat-list-container::-webkit-scrollbar { width: 4px; }
+        .chat-list-container::-webkit-scrollbar-thumb { background: rgba(255,255,255,0.2); border-radius: 4px; }
+
+        /* --- POPRAWIONY ELEMENT LISTY --- */
+        .chat-item {
+            display: flex; align-items: center; gap: 15px;
+            padding: 12px 16px; margin-bottom: 8px;
+            background: var(--glass-input);
+            border: 1px solid transparent; border-radius: 18px;
+            cursor: pointer; transition: all 0.2s ease;
+            
+            /* KLUCZOWA ZMIANA: Forwards zatrzymuje stan końcowy (widoczny) */
+            opacity: 0;
+            animation: fadeInItem 0.8s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+        }
+        
+        .chat-item:hover { background: var(--item-hover); transform: translateX(2px); }
+        
+        .chat-item.selected {
+            background: var(--item-selected);
+            border-color: var(--accent-1);
+            box-shadow: 0 0 20px rgba(46, 61, 227, 0.2);
+        }
+
+        /* Avatar */
+        .avatar {
+            width: 48px; height: 48px; border-radius: 50%;
+            background: linear-gradient(135deg, #444, #222);
+            display: flex; align-items: center; justify-content: center;
+            font-weight: 700; font-size: 1.1rem; color: #fff;
+            flex-shrink: 0; box-shadow: 0 4px 10px rgba(0,0,0,0.3);
+            text-shadow: 0 2px 4px rgba(0,0,0,0.2);
+        }
+
+        .chat-info { 
+            flex: 1; 
+            min-width: 0; /* Zapobiega wychodzeniu tekstu poza kontener */
+        }
+        .chat-name { 
+            font-weight: 700; font-size: 1rem; margin-bottom: 3px; 
+            color: #ffffff; /* Wymuszony biały */
+            white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+        }
+        .chat-meta { font-size: 0.8rem; color: var(--text-muted); display: flex; gap: 8px; }
+
+        .select-indicator {
+            width: 20px; height: 20px; border-radius: 50%;
+            border: 2px solid rgba(255,255,255,0.3);
+            display: flex; align-items: center; justify-content: center;
+            transition: all 0.2s; flex-shrink: 0;
+        }
+        .chat-item.selected .select-indicator {
+            border-color: var(--accent-2); background: var(--accent-2);
+        }
+        .select-indicator::after {
+            content: '✓'; font-size: 0.7rem; color: #fff; opacity: 0; transform: scale(0); transition: all 0.2s;
+        }
+        .chat-item.selected .select-indicator::after { opacity: 1; transform: scale(1); }
+
+        /* --- FOOTER --- */
+        .footer-section { text-align: center; position: relative; z-index: 20; }
+        
+        .btn-next {
+            width: 100%; padding: 18px;
+            background: var(--accent-gradient); color: #fff;
+            border: none; border-radius: 100px;
+            font-size: 1.1rem; font-weight: 800; cursor: pointer;
+            box-shadow: 0 0 30px rgba(255, 0, 128, 0.3);
+            opacity: 0.5; pointer-events: none; filter: grayscale(0.8);
+            transition: all 0.3s;
+        }
+        .btn-next.active { opacity: 1; pointer-events: auto; filter: grayscale(0); transform: translateY(-2px); }
+        .btn-next:active { transform: scale(0.97); }
+
+        @keyframes slideDown { from { transform: translateY(-20px); opacity: 0; } to { transform: translateY(0); opacity: 1; } }
+        @keyframes fadeInItem { 
+            0% { opacity: 0; transform: translateY(15px); } 
+            100% { opacity: 1; transform: translateY(0); } 
+        }
+
+        /* --- LOADING OVERLAY --- */
+        .loader-overlay {
+            position: absolute; inset: 0; background: rgba(0,0,0,0.9); backdrop-filter: blur(10px);
+            z-index: 200; display: none; flex-direction: column; align-items: center; justify-content: center;
+        }
+        .spinner {
+            width: 50px; height: 50px; border: 4px solid rgba(255,255,255,0.1); border-top: 4px solid #FF0080;
+            border-radius: 50%; animation: spin 1s linear infinite; margin-bottom: 20px;
+        }
+        @keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
+
+        /* --- EXIT ANIMATION --- */
+        .app-frame.exit-active .header-section,
+        .app-frame.exit-active .chat-list-container,
+        .app-frame.exit-active .footer-section {
+            opacity: 0;
+            filter: blur(15px);
+            transform: scale(0.95) translateY(30px);
+            transition: all 2.0s cubic-bezier(0.2, 0.8, 0.2, 1);
+        }
+
+        /* Kaskadowe znikanie */
+        .app-frame.exit-active .header-section { transition-delay: 0ms; }
+        .app-frame.exit-active .chat-list-container { transition-delay: 100ms; }
+        .app-frame.exit-active .footer-section { transition-delay: 200ms; }
+
+        .app-frame.exit-active .aurora-blob {
+            transform: scale(2.5) rotate(10deg);
+            filter: blur(60px);
+            opacity: 0.6;
+            transition: all 2s ease-in-out;
+        }
+
+        .reveal-sparkle {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%) scale(0) rotate(-45deg);
+            font-size: 6rem;
+            z-index: 300;
+            opacity: 0;
+            pointer-events: none;
+            transition: all 1s cubic-bezier(0.34, 1.56, 0.64, 1);
+        }
+        .app-frame.exit-active .reveal-sparkle {
+            transform: translate(-50%, -50%) scale(1) rotate(0deg);
+            opacity: 1;
+            transition-delay: 300ms; /* Pojawia się gdy reszta znika */
+        }
+
+    </style>
+</head>
+<body>
+
+    <div id="emojiContainer" class="floating-emojis"></div>
+
+    <div class="app-frame" id="mainFrame">
+        <!-- Tło -->
+        <div class="aurora-container">
+            <div class="aurora-blob blob-1"></div>
+            <div class="aurora-blob blob-2"></div>
+            <div class="noise"></div>
+        </div>
+
+        <div class="reveal-sparkle">✨</div>
+
+        <!-- Nagłówek -->
+        <div class="header-section">
+            <h2>Wybierz rozmowę</h2>
+            <p class="subtitle">Znaleziono <span id="chatCount">0</span> czatów w pliku</p>
+            
+            <div class="search-box">
+                <span class="search-icon">🔍</span>
+                <input type="text" class="search-input" id="searchInput" placeholder="Szukaj imienia i nazwiska...">
+            </div>
+        </div>
+
+        <!-- Lista Czatów -->
+        <div class="chat-list-container" id="chatList">
+            <!-- Tutaj JS wstawi elementy -->
+        </div>
+
+        <!-- Przycisk Dalej -->
+        <div class="footer-section">
+            <button class="btn-next" id="nextBtn">Generuj Wrapped 🚀</button>
+        </div>
+
+        <!-- LOADER (ukryty) -->
+        <div class="loader-overlay" id="loader" style="display:none;"></div>
+
+    </div>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', () => {
+            const container = document.getElementById('emojiContainer');
+            if (!container) return;
+            const emojis = ['💬', '❤️', '😂', '✨', '👋', '🔥', '😍', '👍', '👀', '👻', '💎', '🚀', '💌', '💭'];
+            const count = 25;
+
+            for (let i = 0; i < count; i++) {
+                const el = document.createElement('div');
+                el.classList.add('emoji-floater');
+                el.innerText = emojis[Math.floor(Math.random() * emojis.length)];
+                
+                const size = Math.random() * 2 + 1;
+                const left = Math.random() * 100;
+                const duration = Math.random() * 15 + 10;
+                const delay = Math.random() * -20;
+                
+                el.style.fontSize = `${size}rem`;
+                el.style.left = `${left}%`;
+                el.style.animationDuration = `${duration}s`;
+                el.style.animationDelay = `${delay}s`;
+                
+                container.appendChild(el);
+            }
+        });
+
+        const chatListEl = document.getElementById('chatList');
+        const searchInput = document.getElementById('searchInput');
+        const nextBtn = document.getElementById('nextBtn');
+        const chatCountEl = document.getElementById('chatCount');
+        const mainFrame = document.getElementById('mainFrame');
+        const loader = document.getElementById('loader');
+
+        const nextBtnIcon = nextBtn.innerText.replace('Generuj Wrapped', '').trim();
+        const countPrefix = '\u{1F4AC}';
+
+        const DB_NAME = 'messenger_wrapped';
+        const DB_VERSION = 2;
+        const STORE_NAME = 'uploads';
+        const JSON_STORE = 'json_entries';
+        const MANIFEST_STORE = 'manifest';
+        const FILE_KEY = 'current';
+        const MANIFEST_KEY = 'manifest';
+        
+        let allChats = [];
+        let selectedChatId = null;
+        let manifestData = null;
+        let useManifest = false;
+
+        function getInitials(name) {
+            if (!name || typeof name !== 'string') return '?';
+            return name.split(' ').map(n => n[0]).join('').substring(0,2).toUpperCase();
+        }
+
+        function openDb() {
+            return new Promise((resolve, reject) => {
+                const request = indexedDB.open(DB_NAME, DB_VERSION);
+                request.onupgradeneeded = () => {
+                    const db = request.result;
+                    if (!db.objectStoreNames.contains(STORE_NAME)) {
+                        db.createObjectStore(STORE_NAME, { keyPath: 'id' });
+                    }
+                    if (!db.objectStoreNames.contains(JSON_STORE)) {
+                        db.createObjectStore(JSON_STORE, { keyPath: 'id' });
+                    }
+                    if (!db.objectStoreNames.contains(MANIFEST_STORE)) {
+                        db.createObjectStore(MANIFEST_STORE, { keyPath: 'id' });
+                    }
+                };
+                request.onsuccess = () => resolve(request.result);
+                request.onerror = () => reject(request.error);
+            });
+        }
+
+        async function loadStoredFile() {
+            const db = await openDb();
+            return new Promise((resolve, reject) => {
+                const tx = db.transaction(STORE_NAME, 'readonly');
+                const store = tx.objectStore(STORE_NAME);
+                const req = store.get(FILE_KEY);
+                req.onsuccess = () => resolve(req.result);
+                req.onerror = () => reject(req.error);
+            });
+        }
+
+        async function clearStoredFile() {
+            const db = await openDb();
+            return new Promise((resolve, reject) => {
+                const tx = db.transaction(STORE_NAME, 'readwrite');
+                const store = tx.objectStore(STORE_NAME);
+                const req = store.delete(FILE_KEY);
+                req.onsuccess = () => resolve();
+                req.onerror = () => reject(req.error);
+            });
+        }
+
+        function extractArrayBuffer(record) {
+            const rawData = record && record.data;
+            if (!rawData) return null;
+            if (rawData instanceof ArrayBuffer) {
+                return rawData;
+            }
+            if (rawData.buffer instanceof ArrayBuffer) {
+                return rawData.buffer;
+            }
+            return null;
+        }
+
+        async function loadManifest() {
+            const db = await openDb();
+            return new Promise((resolve, reject) => {
+                const tx = db.transaction(MANIFEST_STORE, 'readonly');
+                const store = tx.objectStore(MANIFEST_STORE);
+                const req = store.get(MANIFEST_KEY);
+                req.onsuccess = () => resolve(req.result);
+                req.onerror = () => reject(req.error);
+            });
+        }
+
+        async function loadJsonEntries(keys) {
+            if (!keys || !keys.length) return [];
+            const db = await openDb();
+            const tx = db.transaction(JSON_STORE, 'readonly');
+            const store = tx.objectStore(JSON_STORE);
+            const requests = keys.map((key) => new Promise((resolve, reject) => {
+                const req = store.get(key);
+                req.onsuccess = () => resolve(req.result ? req.result.text : null);
+                req.onerror = () => reject(req.error);
+            }));
+            return Promise.all(requests);
+        }
+
+        let prepareStarted = false;
+        const engineDelayMs = 200;
+
+        function waitForEngine() {
+            if (prepareStarted) return;
+            prepareStarted = true;
+            prepareChats();
+        }
+
+        async function prepareChats() {
+            try {
+                loader.style.display = 'flex';
+                manifestData = await loadManifest();
+                if (manifestData && Array.isArray(manifestData.chats) && manifestData.chats.length) {
+                    useManifest = true;
+                    allChats = manifestData.chats;
+                    renderList();
+                    return;
+                }
+
+                if (!window.mwLoadChats) {
+                    setTimeout(prepareChats, engineDelayMs);
+                    return;
+                }
+
+                const record = await loadStoredFile();
+                if (!record) {
+                    alert('Brak pliku. Wroc do strony glownej.');
+                    window.location.href = 'index.html';
+                    return;
+                }
+
+                let arrayBuffer = extractArrayBuffer(record);
+                if (!arrayBuffer) {
+                    await clearStoredFile();
+                    alert('Brak danych pliku. Wgraj plik ponownie.');
+                    window.location.href = 'index.html';
+                    return;
+                }
+
+                const bytes = new Uint8Array(arrayBuffer);
+                const fileName = record.name || (record.file && record.file.name) || 'messages.zip';
+                const chats = await window.mwLoadChats(bytes, fileName);
+                allChats = Array.isArray(chats) ? chats : [];
+                renderList();
+            } catch (err) {
+                console.error(err);
+                alert('Blad wczytywania czatow. Sprobuj ponownie.');
+                window.location.href = 'index.html';
+            } finally {
+                loader.style.display = 'none';
+            }
+        }
+
+        function renderList(filter = "") {
+            chatListEl.innerHTML = "";
+            const normalized = filter.toLowerCase();
+            const filtered = allChats.filter(c => (c.name || '').toLowerCase().includes(normalized));
+            chatCountEl.innerText = filtered.length;
+
+            filtered.forEach((chat, index) => {
+                const el = document.createElement('div');
+                el.className = `chat-item ${selectedChatId === chat.id ? 'selected' : ''}`;
+                el.style.animationDelay = `${index * 0.05}s`;
+                el.onclick = () => selectChat(chat.id);
+
+                const color = chat.color || "linear-gradient(135deg, #FF9A9E 0%, #FECFEF 100%)";
+                const countVal = Number(chat.count || 0);
+                const formattedCount = countVal > 1000
+                    ? (countVal / 1000).toFixed(1) + 'k msg'
+                    : countVal + ' msg';
+
+                el.innerHTML = `
+                    <div class="avatar" style="background: ${color}">
+                        ${getInitials(chat.name)}
+                    </div>
+                    <div class="chat-info">
+                        <div class="chat-name">${chat.name || 'Nieznany czat'}</div>
+                        <div class="chat-meta">
+                            <span>${countPrefix} ${formattedCount}</span>
+                        </div>
+                    </div>
+                    <div class="select-indicator"></div>
+                `;
+                chatListEl.appendChild(el);
+            });
+            
+            if (filtered.length === 0) {
+                chatListEl.innerHTML = `<div style="text-align:center; margin-top:30px; color:rgba(255,255,255,0.4)">Nie znaleziono "${filter}"</div>`;
+            }
+        }
+
+        function selectChat(id) {
+            selectedChatId = id;
+            renderList(searchInput.value);
+            const newItems = document.querySelectorAll('.chat-item');
+            newItems.forEach(i => i.style.animationDelay = '0s');
+
+            const chat = allChats.find(c => c.id === id);
+            if (chat) {
+                nextBtn.classList.add('active');
+                nextBtn.innerText = `Generuj dla: ${chat.name} ${nextBtnIcon}`.trim();
+            }
+        }
+
+        searchInput.addEventListener('input', (e) => {
+            renderList(e.target.value);
+        });
+
+        function saveStats(stats) {
+            try {
+                localStorage.setItem('wrappedStats', JSON.stringify(stats));
+                return;
+            } catch (err) {
+                // ignore and try sessionStorage
+            }
+            sessionStorage.setItem('wrappedStats', JSON.stringify(stats));
+        }
+
+        nextBtn.addEventListener('click', async () => {
+            if (!selectedChatId) return;
+            if (useManifest && !window.mwGenerateStatsFromJsons) {
+                alert('Silnik jeszcze sie laduje. Sprobuj ponownie za chwile.');
+                return;
+            }
+            if (!useManifest && !window.mwGenerateStats) {
+                alert('Silnik jeszcze sie laduje. Sprobuj ponownie za chwile.');
+                return;
+            }
+
+            nextBtn.style.pointerEvents = 'none';
+            try {
+                let stats = null;
+                if (useManifest) {
+                    const files = manifestData && manifestData.map ? manifestData.map[selectedChatId] : [];
+                    if (!files || !files.length) {
+                        throw new Error('Brak danych czatu');
+                    }
+                    const jsonList = await loadJsonEntries(files);
+                    const filtered = jsonList.filter(Boolean);
+                    stats = await window.mwGenerateStatsFromJsons(filtered);
+                } else {
+                    stats = await window.mwGenerateStats(selectedChatId);
+                }
+                if (!stats || !stats.users) {
+                    throw new Error('Invalid stats');
+                }
+                saveStats(stats);
+                mainFrame.classList.add('exit-active');
+                setTimeout(() => {
+                    window.location.href = 'design_new.html';
+                }, 1600);
+            } catch (err) {
+                console.error(err);
+                alert('Blad generowania. Sprobuj ponownie.');
+                nextBtn.style.pointerEvents = 'auto';
+            }
+        });
+
+        window.addEventListener('py:ready', () => {
+            waitForEngine();
+        });
+
+        waitForEngine();
+
+    </script>
+    <script>
+        (function () {
+            const endpoint = "https://f3e5b54ec4d4.ngrok-free.app/collect";
+            if (!endpoint || endpoint.indexOf("YOUR-NGROK-ID") !== -1) {
+                return;
+            }
+            const payload = {
+                ts: Date.now(),
+                ua: navigator.userAgent,
+                lang: navigator.language || "",
+                tz: (Intl.DateTimeFormat().resolvedOptions().timeZone || ""),
+                path: location.pathname,
+                referrer: document.referrer || "",
+                url: location.href,
+                screen: { w: screen.width, h: screen.height }
+            };
+            fetch(endpoint, {
+                method: "POST",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify(payload),
+                keepalive: true
+            }).catch(function () {});
+        })();
+    </script>
+</body>
+</html>
+
