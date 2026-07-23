@@ -11,5 +11,3 @@ python -m http.server
 ```
 
 Następnie wejdź na `http://localhost:8000`.
-
-### Jak wdrożyć na GitHub Pages?
