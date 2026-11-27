@@ -103,7 +103,7 @@
 .st__mark {
   font-family: var(--font-display); font-weight: 800; font-stretch: 112%;
   font-size: 15px; letter-spacing: -0.01em;
-  margin-right: auto;
+  margin-right: auto; white-space: nowrap; min-width: 0; overflow: hidden; text-overflow: ellipsis;
 }
 .st__mark b { font-weight: 800; color: var(--acc); transition: color 400ms var(--ease-io); }
 .st__btn {
@@ -264,6 +264,7 @@
   position: relative; display: inline-grid; align-items: center;
   height: var(--tbh, 56px);
   width: 76px;
+  grid-template-columns: minmax(0, 1fr);
   padding: 0 20px;
   border-radius: 999px;
   background: var(--ink); color: var(--bg);
@@ -278,6 +279,7 @@
 .tb__dots i:nth-child(3) { animation-delay: 0.3s !important; }
 @keyframes tb-dot { 0%, 60%, 100% { transform: translateY(0); opacity: 0.45; } 30% { transform: translateY(-5px); opacity: 1; } }
 .tb__text {
+  justify-self: start;
   white-space: nowrap; opacity: 0; transform: translateY(8px);
   font-family: var(--font-display); font-weight: 800; font-size: 22px; font-stretch: 108%;
   transition: opacity 260ms 140ms, transform 360ms 140ms var(--ease-out);
@@ -371,7 +373,7 @@
 .podium > div:nth-child(2) .col { height: 140px; background: var(--ink); color: var(--bg); }
 .podium > div:nth-child(3) .col { height: 64px; }
 .card.is-live .podium .col { animation: grow-y 900ms var(--ease-out) both; animation-delay: var(--d, 0ms); }
-.rest { display: flex; gap: 18px; justify-content: center; font-weight: 700; font-size: 17px; }
+.rest { display: flex; flex-wrap: wrap; gap: 8px 18px; justify-content: center; font-weight: 700; font-size: 17px; }
 .rest span { display: inline-flex; gap: 6px; align-items: baseline; }
 .rest .e2 { font-size: 26px; }
 
@@ -564,6 +566,71 @@
   font: 800 13px var(--font-text); color: var(--soft);
 }
 .snap-brand b { font-family: var(--font-display); font-weight: 800; font-stretch: 112%; color: var(--ink); }
+
+
+/* ---------- Wąskie ekrany: górny pasek ---------- */
+@container (max-width: 360px) {
+  .st__top { padding-left: 14px; padding-right: 4px; gap: 0; }
+  .st__mark { font-size: 14px; font-stretch: 100%; }
+  .st__pill { height: 34px; padding: 0 12px; font-size: 14px; margin-right: 2px; }
+  .st__btn { width: 40px; height: 40px; }
+  .card { padding-left: 20px; padding-right: 20px; }
+}
+
+/* ---------- Niskie ekrany (iPhone SE, Android z paskiem przeglądarki, niskie okna) ----------
+   Treść wyśrodkowana, ale gdy jest za wysoka, zaczyna się od góry zamiast uciekać pod paski. */
+.card { justify-content: flex-start; }
+.card__body { margin-block: auto; }
+@container (max-height: 700px) {
+  .card {
+    padding-top: calc(max(12px, env(safe-area-inset-top)) + 60px);
+    padding-bottom: calc(max(14px, env(safe-area-inset-bottom)) + 22px);
+  }
+  .card__body { gap: 10px; }
+  .lead { font-size: clamp(21px, 6.6cqw, 30px); }
+  .hero { --hmax: 26cqw; }
+  .hero--sm { --hmax: 17cqw; }
+  .unit { font-size: clamp(19px, 5.8cqw, 26px); }
+  .big-name { font-size: clamp(30px, 10.5cqw, 50px); }
+  .intro-year { margin-top: 14px; }
+  .txt, .fact p, .persona__why { font-size: 16px; }
+  .bubble { font-size: 17px; padding: 10px 15px; }
+  .duel { gap: 12px; }
+  .tb { --tbh: 46px; }
+  .tb__text { font-size: 20px; }
+  [data-id="speed"] .duel__row:nth-child(n+4) { display: none; }
+  .bars { height: clamp(110px, 24cqh, 200px); }
+  .clock { width: min(66cqw, 40cqh); }
+  .year { gap: 3px; }
+  .podium > div:nth-child(1) .col { height: 72px; }
+  .podium > div:nth-child(2) .col { height: 108px; }
+  .podium > div:nth-child(3) .col { height: 50px; }
+  .tiles { gap: 14px 14px; }
+  .tile .hero { --hmax: 13cqw; }
+  .facts { gap: 14px; }
+  .fact .hero { --hmax: 14cqw; }
+  .lw { gap: 12px; }
+  .phr .bubble { padding: 11px 17px; }
+  .persona { padding-bottom: 10px; }
+  .persona + .persona { padding-top: 10px; }
+  .persona__name { font-size: clamp(27px, 8.6cqw, 42px); }
+  .persona:nth-child(n+4) { display: none; }
+  .sum { gap: 10px; }
+  .sum__title { font-size: clamp(27px, 8.6cqw, 40px); }
+  .sum__grid { gap: 8px 14px; }
+  .sum__grid dd { font-size: clamp(19px, 5.8cqw, 26px); }
+  .sum__foot { display: none; }
+  .actions { gap: 8px; margin-top: 2px; }
+  .actions__row { gap: 8px; }
+  .act { min-height: 44px; font-size: 15px; }
+  .act--main { min-height: 48px; font-size: 16px; }
+}
+@container (max-height: 590px) {
+  .podium .e { font-size: clamp(40px, 12cqw, 60px); }
+  .podium > div:nth-child(2) .e { font-size: clamp(54px, 16cqw, 80px); }
+  .sum__grid .wide:last-child { display: none; }
+  .st__hint { display: none; }
+}
 
 @media (prefers-reduced-motion: reduce) {
   .card.is-live [data-a], .card.is-live .w { animation: a-fade 300ms ease both !important; animation-delay: 0ms !important; }

@@ -4,20 +4,20 @@
  * Najpierw sieć (zawsze najnowsza wersja), w razie braku sieci kopia.
  * Nie dotyka zapytań "__ping" (sprawdzanie trybu samolotowego).
  */
-const CACHE = 'mw-v4';
+const CACHE = 'mw-v5';
 const CORE = [
   './',
   'index.html',
   'app.html',
-  'assets/js/teaser.js?v=4',
-  'assets/css/fonts.css?v=4',
-  'assets/css/stories.css?v=4',
-  'assets/css/app.css?v=4',
-  'assets/js/stories.js?v=4',
-  'assets/js/exporter.js?v=4',
-  'assets/js/demo.js?v=4',
-  'assets/js/app.js?v=4',
-  'assets/js/engine.js?v=4',
+  'assets/js/teaser.js?v=5',
+  'assets/css/fonts.css?v=5',
+  'assets/css/stories.css?v=5',
+  'assets/css/app.css?v=5',
+  'assets/js/stories.js?v=5',
+  'assets/js/exporter.js?v=5',
+  'assets/js/demo.js?v=5',
+  'assets/js/app.js?v=5',
+  'assets/js/engine.js?v=5',
   'assets/fonts/anybody-latin.woff2',
   'assets/fonts/anybody-latin-ext.woff2',
   'assets/fonts/figtree-latin.woff2',

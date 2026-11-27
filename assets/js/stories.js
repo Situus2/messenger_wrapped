@@ -434,7 +434,7 @@
       <div class="lead">${words('Reakcje')}</div>
       ${counter(R.total, { d: 400, suffix: '' })}
       <div class="unit" data-a="rise" style="--d:800ms">${plural(R.total, 'reakcja', 'reakcje', 'reakcji')} na wiadomości</div>
-      <div class="rest" data-a="rise" style="--d:1500ms;justify-content:flex-start;gap:22px;margin-top:6px">${R.top.map((e) => `<span><span class="e2" style="font-size:38px">${esc(e.e)}</span>${fmt(e.n)}</span>`).join('')}</div>
+      <div class="rest" data-a="rise" style="--d:1500ms;justify-content:flex-start;column-gap:clamp(12px,4cqw,22px);margin-top:6px">${R.top.map((e) => `<span><span class="e2" style="font-size:clamp(28px,8.6cqw,38px)">${esc(e.e)}</span>${fmt(e.n)}</span>`).join('')}</div>
       ${S.people.length > 1 ? `<p class="txt" data-a="rise" style="--d:2200ms">Najczęściej reaguje <b>${esc(giver.short)}</b> (${fmt(giver.reactGiven)}).</p>` : ''}
       ${R.most && c.group ? `<div class="thread" data-a="rise" style="--d:2800ms"><div class="who">${esc((S.people.find((p) => p.name === R.most.s) || { short: R.most.s }).short)} · ${fmt(R.most.n)} ${plural(R.most.n, 'reakcja', 'reakcje', 'reakcji')}</div><div class="bubble">${esc(R.most.t)}</div></div>` : ''}
     `;
@@ -655,7 +655,7 @@
             return;
           }
           const text = tb.querySelector('.tb__text');
-          tb.style.width = Math.ceil(text.getBoundingClientRect().width + 40) + 'px';
+          tb.style.width = Math.ceil(Math.max(text.getBoundingClientRect().width, text.scrollWidth) + 40) + 'px';
           tb.classList.add('is-done');
         }, wait));
       });

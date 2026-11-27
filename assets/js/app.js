@@ -5,7 +5,7 @@
 (function () {
   'use strict';
 
-  const VERSION = 4;
+  const VERSION = 5;
   const $ = (s, r = document) => r.querySelector(s);
   const { fmt, plural } = window.WrappedStories;
   const reduceMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
@@ -98,7 +98,7 @@
     setTimeout(() => planeStep.classList.remove('is-switching'), 180);
     planeStep.dataset.net = state;
     planeMsg.textContent = online
-      ? 'Masz teraz internet.'
+      ? 'Masz internet. Strona zadziała też bez niego.'
       : 'Jesteś offline. Od teraz nic nie może opuścić tego urządzenia.';
     drop.classList.toggle('is-ready', !online && !S.list);
     const btnTitle = $('#pickBtn strong');

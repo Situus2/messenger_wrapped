@@ -7,7 +7,7 @@
 (function () {
   'use strict';
 
-  const VERSION = 4;
+  const VERSION = 5;
   const FRAME_W = 405;
   const FRAME_H = 720;
   const OUT_W = 1080;

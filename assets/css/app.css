@@ -61,6 +61,8 @@ button { font: inherit; color: inherit; }
   transition: background-size 260ms var(--ease-out);
 }
 .ulink:hover { background-size: 0% 2px; background-position: right bottom; }
+.nav .ulink { position: relative; }
+.nav .ulink::after { content: ''; position: absolute; inset: -12px -8px; } /* większe pole dotyku */
 .ulink--btn { appearance: none; border: 0; background-color: transparent; cursor: pointer; font-size: 16px; }
 
 .mark {
@@ -376,7 +378,7 @@ body.is-dragging .dropzone-overlay p { transform: none; }
   .nav__links { font-size: 15px; }
   .nav__links a { white-space: nowrap; }
   .nav__links a:last-child { display: none; }
-  .thumb { --w: 106px; --k: 0.2617; border-radius: 16px; }
+  .thumb { --w: 98px; --k: 0.242; border-radius: 15px; }
   .strip__track { gap: 10px; }
   .top { padding-bottom: 40px; }
   .top__main { padding-top: 18px; }
@@ -387,7 +389,7 @@ body.is-dragging .dropzone-overlay p { transform: none; }
   .step > * { grid-column: 2; }
   .step__n { grid-column: 1; grid-row: 1; font-size: 26px; }
   .step__t { font-size: 18px; }
-  .step--1 .step__p { display: none; }
+  .step--1 .step__p, .step--2 .step__p { display: none; }
   .step .plane, .step .drop { grid-column: 1 / -1; }
   .step--2 .plane__msg { grid-column: 1 / -1; }
   .drop { min-height: 132px; }
@@ -410,3 +412,38 @@ body.is-dragging .dropzone-overlay p { transform: none; }
 }
 .tool--soon .tabs { margin-top: 18px; }
 .tool--soon .panes { margin-top: 20px; }
+
+/* ---------- Telefony ---------- */
+@media (max-width: 560px) {
+  .strip__cap { text-align: left; }
+  .top__title { font-size: clamp(29px, 8.4vw, 35px); font-stretch: 104%; }
+  .top__title .yr { font-stretch: 120%; }
+  .soon__h { font-size: 23px; }
+  .tool--soon { padding: 20px 16px 18px; }
+  .tool--soon .tabs, .howto .tabs { gap: 0; }
+  .tool--soon .tab, .howto .tab { flex: 1 1 0; text-align: center; font-size: 16px; padding-left: 4px; padding-right: 4px; }
+  .pane { gap: 12px; }
+  .pane li { padding-left: 34px; font-size: 16px; }
+  .pane li::before { font-size: 22px; top: 0; }
+  .privacy { padding: 52px 0; }
+  .howto { padding-top: 52px; }
+  .faq { padding-bottom: 56px; }
+  .h2 { font-size: 29px; }
+  .sec__lead { font-size: 16px; }
+  .proof { gap: 22px; margin-top: 28px; }
+  .proof dt { font-size: 19px; }
+  .qa summary { padding: 16px 18px; font-size: 17px; }
+  .qa details > div { padding: 0 18px 18px; }
+  .pick__title { font-size: 34px; }
+  .pick { padding-left: 16px; padding-right: 16px; }
+  .pick__panel { padding: 4px 6px 8px; }
+  .row { padding: 12px 10px; gap: 12px; }
+  .wrap { padding: 0 16px; }
+  .top__main { padding-left: 16px; padding-right: 16px; }
+  .strip__cap { padding: 0 16px; }
+}
+@media (max-width: 359px) {
+  .nav__links { display: none; }
+  .spark { display: none; }
+  .row { grid-template-columns: 1fr; }
+}
