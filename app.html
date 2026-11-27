@@ -1,0 +1,174 @@
+<!DOCTYPE html>
+<html lang="pl">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+  <meta name="theme-color" content="#0a4fe0">
+  <meta name="robots" content="noindex, nofollow">
+  <title>Messenger Wrapped — podsumowanie roku z Twoich rozmów</title>
+  <meta name="description" content="Podsumowanie roku z rozmów na Messengerze w stylu Wrapped: wiadomości, emoji, godziny, serie i typy rozmówców. Plik analizowany jest w Twojej przeglądarce — działa nawet w trybie samolotowym.">
+  <meta property="og:title" content="Messenger Wrapped">
+  <meta property="og:description" content="Ile wiadomości, kto pisze więcej, wasze emoji i godzina roku. Liczone lokalnie, bez wysyłania danych.">
+  <meta property="og:type" content="website">
+  <link rel="preload" href="assets/fonts/anybody-latin.woff2" as="font" type="font/woff2" crossorigin>
+  <link rel="preload" href="assets/fonts/figtree-latin.woff2" as="font" type="font/woff2" crossorigin>
+  <link rel="stylesheet" href="assets/css/fonts.css?v=4">
+  <link rel="stylesheet" href="assets/css/stories.css?v=4">
+  <link rel="stylesheet" href="assets/css/app.css?v=4">
+</head>
+<body>
+  <!-- ============ Strona główna ============ -->
+  <div class="view" id="home">
+    <section class="top">
+      <header class="nav">
+        <a class="mark" href="">Messenger <b>Wrapped</b></a>
+        <nav class="nav__links" aria-label="Sekcje">
+          <a class="ulink" href="#pobierz">Jak pobrać plik</a>
+          <a class="ulink" href="#prywatnosc">Prywatność</a>
+        </nav>
+      </header>
+
+      <div class="strip" aria-label="Przykładowe karty z fikcyjnej rozmowy">
+        <div class="strip__track" id="strip"></div>
+      </div>
+      <p class="strip__cap">Przykładowe karty z fikcyjnej rozmowy</p>
+
+      <div class="top__main">
+        <h1 class="top__title">Twój <span class="yr" data-year></span> na Messengerze</h1>
+        <p class="top__lead">Wgraj eksport rozmów i zobacz, ile pisaliście, kto odpisuje szybciej, wasze emoji i godzinę roku. Wszystko liczy się na Twoim urządzeniu.</p>
+
+        <div class="tool" id="tool">
+          <div class="step step--1">
+            <span class="step__n">1</span>
+            <h2 class="step__t">Pobierz eksport z Messengera</h2>
+            <p class="step__p">Na komputerze, z messenger.com. Dostaniesz plik ZIP z rozmowami.</p>
+            <a class="ulink ulink--ink" href="#pobierz">Pokaż instrukcję</a>
+          </div>
+
+          <div class="step step--2" id="plane" data-net="online">
+            <span class="step__n">2</span>
+            <h2 class="step__t">Odetnij internet <span class="opt">opcjonalnie</span></h2>
+            <p class="step__p">Strona jest już wczytana i działa bez sieci. Włącz tryb samolotowy, a plik na pewno nigdzie nie wyjdzie.</p>
+            <button class="plane" type="button" id="planeBtn" aria-describedby="planeMsg">
+              <span>Tryb samolotowy</span>
+              <span class="toggle" aria-hidden="true"><i></i></span>
+            </button>
+            <p class="plane__msg" id="planeMsg" aria-live="polite">Masz teraz internet.</p>
+          </div>
+
+          <div class="step step--3" id="upload">
+            <span class="step__n">3</span>
+            <h2 class="step__t">Wrzuć plik</h2>
+            <div class="drop" id="drop">
+              <button class="drop__btn" type="button" id="pickBtn">
+                <strong>Wybierz plik ZIP lub JSON</strong>
+                <span>albo przeciągnij go tutaj · możesz wybrać kilka</span>
+              </button>
+              <div class="drop__prog" hidden>
+                <strong class="drop__title">Otwieram archiwum…</strong>
+                <span class="bar"><i></i></span>
+                <span class="drop__sub">To zwykle kilka sekund.</span>
+              </div>
+              <div class="drop__err" hidden role="alert">
+                <strong>Nie udało się wczytać pliku</strong>
+                <span class="drop__errmsg"></span>
+                <button class="btn" type="button" data-retry>Wybierz inny plik</button>
+              </div>
+              <div class="drop__done" hidden>
+                <strong class="drop__donetitle"></strong>
+                <span class="drop__donesub"></span>
+                <div class="drop__actions"><button class="btn btn--main" type="button" data-show>Wybierz rozmowę</button><button class="btn" type="button" data-retry>Inny plik</button></div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <section class="privacy" id="prywatnosc">
+      <div class="wrap">
+        <h2 class="h2">Twoje wiadomości zostają u Ciebie</h2>
+        <p class="sec__lead">Nie ma tu serwera, który dostaje Twój plik. Całą analizę robi przeglądarka na tym urządzeniu.</p>
+        <dl class="proof">
+          <div><dt>Plik czyta Twoja przeglądarka</dt><dd>Analiza działa w osobnym wątku na tym urządzeniu. Z archiwum odczytywane są tylko pliki z rozmowami — zdjęcia i filmy są pomijane.</dd></div>
+          <div><dt>Działa w trybie samolotowym</dt><dd>Po wczytaniu strony możesz odciąć internet i wszystko dalej działa. To najprostszy dowód, że nic nie jest wysyłane.</dd></div>
+          <div><dt>Nic nie zostaje</dt><dd>Ani plik, ani wyniki nie są zapisywane. Po zamknięciu karty przeglądarki nie ma po nich śladu.</dd></div>
+          <div><dt>Kod jest otwarty</dt><dd>Możesz sam sprawdzić, co robi strona: <a class="ulink" href="https://github.com/Situus2/messenger_wrapped" rel="noopener">github.com/Situus2/messenger_wrapped</a>.</dd></div>
+        </dl>
+      </div>
+    </section>
+
+    <section class="howto" id="pobierz">
+      <div class="wrap">
+        <h2 class="h2">Jak pobrać plik z Messengera</h2>
+        <p class="sec__lead">Pobieranie działa tylko na komputerze. Rozmowy szyfrowane i starsze są w osobnych eksportach — możesz wgrać oba naraz, powtórzone wiadomości policzymy raz.</p>
+        <div class="tabs" role="tablist" aria-label="Rodzaj eksportu">
+          <button class="tab" role="tab" id="tab-e2ee" aria-controls="pane-e2ee" aria-selected="true">Czaty szyfrowane</button>
+          <button class="tab" role="tab" id="tab-dyi" aria-controls="pane-dyi" aria-selected="false" tabindex="-1">Starsze rozmowy</button>
+          <span class="tabs__line" aria-hidden="true"></span>
+        </div>
+        <div class="panes">
+          <ol class="pane" id="pane-e2ee" role="tabpanel" aria-labelledby="tab-e2ee">
+            <li>Wejdź na <b>messenger.com</b> i kliknij swoje zdjęcie profilowe.</li>
+            <li>Wybierz <b>Prywatność i bezpieczeństwo</b>, potem <b>Czaty szyfrowane end-to-end</b>.</li>
+            <li>Otwórz <b>Pamięć wiadomości</b> i kliknij <b>Pobierz dane z bezpiecznej pamięci</b>.</li>
+            <li>Podaj PIN do kopii wiadomości (albo kod jednorazowy) i kliknij <b>Pobierz</b>. Dostaniesz plik ZIP.</li>
+          </ol>
+          <ol class="pane" id="pane-dyi" role="tabpanel" aria-labelledby="tab-dyi" hidden>
+            <li>Na Facebooku otwórz <b>Ustawienia i prywatność</b>, potem <b>Centrum kont</b>.</li>
+            <li>Wejdź w <b>Twoje informacje i uprawnienia</b> → <b>Pobierz swoje informacje</b>.</li>
+            <li>Zaznacz tylko <b>Wiadomości</b>, wybierz format <b>JSON</b> (nie HTML) i zakres dat.</li>
+            <li>Gdy plik będzie gotowy (zwykle po kilku godzinach), pobierz ZIP z tej samej strony.</li>
+          </ol>
+        </div>
+      </div>
+    </section>
+
+    <section class="faq">
+      <div class="wrap">
+        <h2 class="h2">Pytania</h2>
+        <div class="qa">
+          <details><summary>Czy zrobię to na telefonie?</summary><div><p>Plik pobierzesz tylko na komputerze. Samo podsumowanie zrobisz na czym chcesz — wystarczy, że ZIP będzie zapisany na tym urządzeniu (a nie tylko w chmurze).</p></div></details>
+          <details><summary>Jak wrzucić karty na Instagram?</summary><div><p>Na dowolnej karcie dotknij „Udostępnij”. Na telefonie wybierz Instagram, a potem Relacja. Na komputerze pobierzesz obrazek 1080 × 1920 albo od razu wszystkie karty w paczce ZIP.</p></div></details>
+          <details><summary>Dlaczego nie widzę wszystkich rozmów?</summary><div><p>Czaty szyfrowane i starsze rozmowy są w osobnych eksportach. Wgraj oba pliki naraz — rozmowy z tą samą osobą zostaną połączone.</p></div></details>
+          <details><summary>Ile to trwa?</summary><div><p>Od kilku sekund do minuty, zależnie od rozmiaru eksportu. Multimedia z archiwum są pomijane, więc nawet kilkugigabajtowy ZIP czyta się szybko.</p></div></details>
+          <details><summary>Jak liczony jest czas odpowiedzi?</summary><div><p>To mediana czasu między wiadomością jednej osoby a odpowiedzią drugiej. Przerwy dłuższe niż 6 godzin się nie liczą — to już nowa rozmowa.</p></div></details>
+        </div>
+      </div>
+    </section>
+
+    <footer class="foot">
+      <div class="wrap foot__in">
+        <a class="mark" href="">Messenger <b>Wrapped</b></a>
+        <p>Projekt niezależny, niezwiązany z Meta. <a class="ulink" href="https://github.com/Situus2/messenger_wrapped" rel="noopener">Kod źródłowy</a></p>
+      </div>
+    </footer>
+  </div>
+
+  <!-- ============ Wybór rozmowy ============ -->
+  <div class="view view--pick" id="pick" hidden>
+    <header class="nav">
+      <a class="mark" href="">Messenger <b>Wrapped</b></a>
+      <button class="ulink ulink--btn" type="button" id="backBtn">Inny plik</button>
+    </header>
+    <div class="pick">
+      <h1 class="pick__title">Wybierz rozmowę</h1>
+      <p class="pick__meta" id="pickMeta"></p>
+      <div class="pick__panel">
+        <div class="tabs tabs--years" id="years" role="tablist" aria-label="Okres"><span class="tabs__line" aria-hidden="true"></span></div>
+        <label class="search"><span class="visually-hidden">Szukaj rozmowy</span><input type="search" id="q" placeholder="Szukaj osoby lub grupy" autocomplete="off" enterkeyhint="search"></label>
+        <ul class="list" id="list"></ul>
+      </div>
+    </div>
+  </div>
+
+  <div id="stage"></div>
+  <div class="dropzone-overlay" aria-hidden="true"><p>Upuść plik</p></div>
+  <input type="file" id="file" accept=".zip,.json,application/zip,application/json,application/x-zip-compressed" multiple hidden>
+
+  <script src="assets/js/stories.js?v=4"></script>
+  <script src="assets/js/exporter.js?v=4"></script>
+  <script src="assets/js/demo.js?v=4"></script>
+  <script src="assets/js/app.js?v=4"></script>
+</body>
+</html>
